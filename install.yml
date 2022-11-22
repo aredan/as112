@@ -1,0 +1,11 @@
+- name: AS112 install
+  hosts: localhost
+
+  vars:
+    rt_id:
+
+  roles:
+    - packages
+    - ufw
+    - nsd
+    - pathvector

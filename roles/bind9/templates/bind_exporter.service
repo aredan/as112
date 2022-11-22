@@ -1,0 +1,12 @@
+[Unit]
+Description=BIND exporter
+After=network.target
+
+[Service]
+Type=simple
+Environment="GODEBUG=x509ignoreCN=0"
+ExecStart=/usr/bin/bind_exporter
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

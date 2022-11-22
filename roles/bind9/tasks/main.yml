@@ -1,0 +1,50 @@
+- name: Get bind_exporter
+  get_url:
+    url: https://github.com/prometheus-community/bind_exporter/releases/download/v0.6.0/bind_exporter-0.6.0.linux-amd64.tar.gz
+    dest: /tmp/bind_exporter-0.6.0.linux-amd64.tar.gz
+    mode: 0744
+
+- name: Uncompress bind_exporter
+  unarchive:
+    src: /tmp/bind_exporter-0.6.0.linux-amd64.tar.gz
+    dest: /usr/bin/bind_exporter
+    mode: +x
+
+- name: Copy bind_exporter service
+  template:
+    src: bind_exporter.service
+    dest: /lib/systemd/system/bind-exporter.service
+  register: exporter
+
+- name: Start and enable bind_exporter
+  systemd:
+    daemon_reload: true
+    name: bind-exporter
+    state: started
+    enabled: true
+
+- name: Restart bind-exporter
+  systemd:
+    name: bind-exporter
+    state: restarted
+  when: exporter.changed
+
+- name: Copy BIND config
+  template:
+    src: "{{ item }}"
+    dest: "/etc/bind/{{ item | basename }}"
+  with_fileglob:
+    - ../templates/*
+  register: config
+
+- name: Start and enable BIND
+  systemd:
+    name: bind
+    state: started
+    enabled: true
+
+- name: Restart BIND
+  systemd:
+    name: bind
+    state: restarted
+  when: config.changed
